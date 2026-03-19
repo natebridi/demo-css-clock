@@ -1,0 +1,369 @@
+@layer reset, base;
+
+@layer reset {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+}
+
+/*
+  Browser support checks
+*/
+
+@function --supports() {
+  @supports selector(::scroll-marker) {
+    result: none;
+  }
+}
+
+.not-supported {
+  position: absolute;
+  display: grid;
+  display: --supports();
+  place-content: center;
+  inset: 0;
+  z-index: 99;
+  
+  p {
+    font-size: 1.25rem;
+    line-height: 1.4;
+    max-width: 60ch;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    z-index: -1;
+  }
+}
+
+@function --screen(--small, --large) {
+  result: var(--large);
+  @media (max-width: 800px) {
+    result: var(--small);
+  }
+}
+
+@layer base {
+  :root {
+    --d:            min(40vw, 70vh);
+    --d2:           calc(var(--d) / 2);
+    --padding:      6rem;
+    --buffer:       5rem;
+    --overhang:     2rem;
+    --accent:       oklch(0.9 0.9 100);
+    --shadow-lite:  0px 2px 2px rgba(3, 7, 18, 0.06),
+                    0px 8px 10px rgba(3, 7, 18, 0.04),
+                    0px 18px 22px rgba(3, 7, 18, 0.03),
+                    0px 32px 39px rgba(3, 7, 18, 0.01);
+  }
+
+  body {
+    margin: 0;
+    background: #333;
+    color: #fff;
+    font-family: system-ui, sans-serif;
+  }
+
+  .wrap {
+    width: auto;
+    margin-inline: auto;
+    height: 100dvh;
+    padding-bottom: 10rem;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    grid-template-columns: --screen(1fr, 400px calc(var(--d) + var(--padding)));
+  }
+}
+
+.copy {
+  padding: 2rem;
+
+  a {
+    color: var(--accent);
+  }
+
+  em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  p {
+    font-size: 1.25rem;
+    line-height: 1.3;
+
+    &.note {
+      font-size: 0.8rem;
+      color: #aaa;
+      padding-left: 1rem;
+      anchor-name: --note;
+
+      &::before {
+        content: '*';
+        position-anchor: --note;
+        color: var(--accent);
+        font-size: 1.3em;
+        position: absolute;
+        left: anchor(left);
+      }
+    }
+  }
+}
+
+@function --rotate(--deg, --count, --multiplier) returns <transform-list> {
+  result: 
+    translate(calc(var(--d2) - var(--overhang)), calc(var(--d2) - 50%)) 
+    rotate(calc((var(--deg) + var(--count)) * var(--multiplier) - 90deg));
+}
+
+@function --place-digit(--digit) returns <transform-list> {
+  result:
+    translateX(calc(cos(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--buffer)) + var(--d2) - 50%))
+    translateY(calc(sin(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--buffer)) + var(--d2) - 50%))
+}
+
+.clocks {
+  display: flex;
+  align-items: center;
+  gap: var(--padding);
+  padding-right: var(--padding);
+  overflow-x: scroll;
+  width: calc(var(--d) + var(--padding));
+  height: calc(var(--d) + var(--padding));
+  scroll-snap-type: x mandatory;
+  anchor-name: --clocks;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+
+  &::scroll-button(*) {
+    border: 0;
+    background: none;
+    font-size: 2rem;
+    color: #fff;
+    cursor: pointer;
+    opacity: 0.6;
+    position: absolute;
+    position-anchor: --clocks;
+  }
+
+  &::scroll-button(*):hover,
+  &::scroll-button(*):focus {
+      opacity: 1;
+  }
+
+  &::scroll-button(*):active {
+    translate: 1px 1px;
+  }
+
+  &::scroll-button(*):disabled {
+    opacity: 0.2;
+  }
+
+  &::scroll-button(left) {
+    content: "←" / "Previous";
+    left: calc(anchor(left) + 5rem);
+    bottom: calc(anchor(bottom) - 3rem);
+  }
+
+  &::scroll-button(right) {
+    content: "→" / "Next";
+    right: calc(anchor(right) + 5rem);
+    bottom: calc(anchor(bottom) - 3rem);
+  }
+}
+
+.markers {
+    position-anchor: --clocks;
+    scroll-target-group: auto;
+    position: absolute;
+    top: calc(anchor(bottom));
+    justify-self: anchor-center;
+    display: flex;
+    padding: 0.25rem;
+    background-color: rgba(255, 255, 255, 0.6);
+    border-radius: 2rem;
+
+    &::before {
+      content: '';
+      background-color: #222;
+      position: absolute;
+      position-anchor: --current-page;
+      left: anchor(left);
+      right: anchor(right);
+      bottom: 0.25rem;
+      top: 0.25rem;
+      border-radius: 2rem;
+      z-index: 1;
+      transition: left 0.2s ease, right 0.2s ease;
+    }
+
+    a {
+      padding: 1rem 2rem;
+      color: #222;
+      border: none;
+      border-radius: 2rem;
+      text-decoration: none;
+      z-index: 2;
+      transition: color 0.2s linear;
+
+      &:target-current {
+        color: #fff;
+        anchor-name: --current-page;
+      }
+    }
+}
+
+.clock-wrap {
+    scroll-snap-align: center;
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+
+    container-type: scroll-state;
+    container-name: clock-container;
+}
+
+.clock {
+  outline: 1px solid #444;
+  width: var(--d);
+  min-width: var(--d);
+  height: var(--d);
+  min-height: var(--d);
+  position: relative;
+  corner-shape: squircle;
+  border-radius: calc(var(--d) / 10);
+  box-shadow: 0px 1px 2px rgba(3, 7, 18, 0.23),
+    0px 5px 10px rgba(3, 7, 18, 0.18),
+    0px 12px 22px rgba(3, 7, 18, 0.14),
+    0px 20px 39px rgba(3, 7, 18, 0.09),
+    0px 32px 61px rgba(3, 7, 18, 0.05);
+  transition: transform 0.5s linear, opacity 0.5s linear;
+  opacity: 0.1;
+  transform: scale(0.8);
+
+  &.style-2 {
+    background-color: #eee;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--accent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    z-index: 5;
+  }
+}
+
+@container clock-container scroll-state(snapped: x) {
+  .clock {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+
+
+.hour,
+.minute,
+.second {
+  background-color: white;
+  width: calc(var(--d) / 2.5);
+  height: 0.75rem;
+  top: 0;
+  left: 0;
+  transform-origin: var(--overhang) 50%;
+  position: absolute;
+  border-radius: 0.75rem;
+  box-shadow: 0 0 1rem rgba(0, 0, 0, 0.4);
+  z-index: 2;
+  padding: 0;
+  margin: 0;
+
+  .style-2 & {
+    background-color: #444;
+    box-shadow: var(--shadow-lite);
+  }
+}
+
+.hour {
+  width: calc(var(--d) / 3.5);
+  height: 1.25rem;
+  z-index: 3;
+}
+
+.second {
+  height: 0.25rem;
+  background-color: var(--accent);
+  z-index: 4;
+
+  .style-2 & {
+    background-color: var(--accent);
+    box-shadow: var(--shadow-lite);
+  }
+}
+
+.hour {
+  /* transform: --rotate(attr(data-hour type(<number>)), 30deg); */
+  animation: rotationhr 86400s infinite linear;
+}
+
+.minute {
+  /* transform: --rotate(attr(data-minute type(<number>)), 6deg); */
+  animation: rotation 3600s infinite linear;
+}
+
+.second {
+  /* transform: --rotate(attr(data-second type(<number>)), 6deg); */
+  animation: rotation 60s infinite linear;
+}
+
+@keyframes rotationhr {
+  0% {
+    transform: --rotate(attr(data-progress type(<number>)), 0, 30deg);
+  }
+  100% {
+    transform: --rotate(attr(data-progress type(<number>)), 24, 30deg);
+  }
+}
+
+@keyframes rotation {
+  0% {
+    transform: --rotate(attr(data-progress type(<number>)), 0, 6deg);
+  }
+  100% {
+    transform: --rotate(attr(data-progress type(<number>)), 60, 6deg);
+  }
+}
+
+[data-digit] {
+  color: #fff;
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  display: grid;
+  place-content: center;
+  transform: --place-digit(attr(data-digit type(<number>)));
+  font-size: 2rem;
+  z-index: 1;
+
+  .style-2 & {
+    color: #444;
+
+    &::before {
+      content: '•';
+    }
+  }
+
+  &::before {
+    content: attr(data-digit)
+  }
+}

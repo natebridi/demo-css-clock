@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>variable-clock</title>
+  </head>
+  <body>
+    <section class="not-supported">
+      <p>Your browser is not supported.</p>
+      <p>This demo features CSS features, like custom functions and carousels, that have not yet been implemented in all popular browsers. Check it out in Chrome or Edge to see it in action.</p>
+    </section>
+    <div class="wrap">
+      <section class="copy">
+        <h1>This page uses no Javascript.<em>*</em></h1>
+        <p>All functionality is pure CSS. No weird hacks, just the latest features not yet available in all browsers. Read more about CSS functions, <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/attr#examples">attr()</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Overflow/Carousels">carousels</a></p>
+        <p class="note">Technically a couple lines of JS initially set the time via attributes on the clock hand elements, but that could come from any backend script.</p>
+      </section>
+      <div id="app"></div>
+    </div>
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
