@@ -47,13 +47,16 @@
 }
 
 @layer base {
+
   :root {
     --d:            min(40vw, 70vh);
     --d2:           calc(var(--d) / 2);
     --padding:      6rem;
-    --buffer:       5rem;
+    --clock-buffer: 5rem;
     --overhang:     2rem;
-    --accent:       oklch(0.9 0.9 100);
+    --accent:       oklch(0.9 0.37 60);
+    --accent2:      oklch(from var(--accent) l c calc(h + 200));
+    --accent3:      oklch(from var(--accent) l c calc(h + 310));
     --shadow-lite:  0px 2px 2px rgba(3, 7, 18, 0.06),
                     0px 8px 10px rgba(3, 7, 18, 0.04),
                     0px 18px 22px rgba(3, 7, 18, 0.03),
@@ -81,6 +84,7 @@
 
 .copy {
   padding: 2rem;
+
 
   a {
     color: var(--accent);
@@ -121,9 +125,13 @@
 
 @function --place-digit(--digit) returns <transform-list> {
   result:
-    translateX(calc(cos(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--buffer)) + var(--d2) - 50%))
-    translateY(calc(sin(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--buffer)) + var(--d2) - 50%))
+    translateX(calc(cos(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--clock-buffer)) + var(--d2) - 50%))
+    translateY(calc(sin(var(--digit) * 30deg - 90deg) * calc(var(--d2) - var(--clock-buffer)) + var(--d2) - 50%))
 }
+
+/*
+  Layout/styling for carousel
+*/
 
 .clocks {
   display: flex;
@@ -142,16 +150,25 @@
     border: 0;
     background: none;
     font-size: 2rem;
+    width: 4rem;
+    height: 4rem;
+    display: grid;
+    place-content: center;
     color: #fff;
     cursor: pointer;
-    opacity: 0.6;
     position: absolute;
     position-anchor: --clocks;
+    border-radius: 2rem;
+    padding: 1.25rem;
   }
 
-  &::scroll-button(*):hover,
-  &::scroll-button(*):focus {
-      opacity: 1;
+  &::scroll-button(*):hover {
+    opacity: 1;
+    background-color: oklch(1 0 0 / 0.05);
+  }
+
+  &::scroll-button(*):focus-visible {
+    outline: 2px solid #fff;
   }
 
   &::scroll-button(*):active {
@@ -160,20 +177,26 @@
 
   &::scroll-button(*):disabled {
     opacity: 0.2;
+    pointer-events: none;
   }
 
   &::scroll-button(left) {
     content: "←" / "Previous";
     left: calc(anchor(left) + 5rem);
-    bottom: calc(anchor(bottom) - 3rem);
+    bottom: calc(anchor(bottom) - 4rem);
   }
 
   &::scroll-button(right) {
     content: "→" / "Next";
     right: calc(anchor(right) + 5rem);
-    bottom: calc(anchor(bottom) - 3rem);
+    bottom: calc(anchor(bottom) - 4rem);
   }
 }
+
+
+/*
+  Labeled carousel tabs
+*/
 
 .markers {
     position-anchor: --clocks;
@@ -183,7 +206,7 @@
     justify-self: anchor-center;
     display: flex;
     padding: 0.25rem;
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: oklch(1 0 0 / 0.35);
     border-radius: 2rem;
 
     &::before {
@@ -199,21 +222,28 @@
       z-index: 1;
       transition: left 0.2s ease, right 0.2s ease;
     }
+}
 
-    a {
-      padding: 1rem 2rem;
-      color: #222;
-      border: none;
-      border-radius: 2rem;
-      text-decoration: none;
-      z-index: 2;
-      transition: color 0.2s linear;
+.marker {
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #222;
+  background-color: transparent;
+  border: none;
+  border-radius: 2rem;
+  text-decoration: none;
+  z-index: 2;
+  transition: color 0.2s linear;
 
-      &:target-current {
-        color: #fff;
-        anchor-name: --current-page;
-      }
-    }
+  &:target-current {
+    color: #fff;
+    anchor-name: --current-page;
+  }
+
+  &:hover {
+    background-color: oklch(0 0 0 / 0.1);
+  }
 }
 
 .clock-wrap {
@@ -226,12 +256,16 @@
     container-name: clock-container;
 }
 
+/*
+  Clock styling
+*/
+
 .clock {
-  outline: 1px solid #444;
   width: var(--d);
   min-width: var(--d);
   height: var(--d);
   min-height: var(--d);
+  outline: 1px solid #444;
   position: relative;
   corner-shape: squircle;
   border-radius: calc(var(--d) / 10);
@@ -240,12 +274,27 @@
     0px 12px 22px rgba(3, 7, 18, 0.14),
     0px 20px 39px rgba(3, 7, 18, 0.09),
     0px 32px 61px rgba(3, 7, 18, 0.05);
-  transition: transform 0.5s linear, opacity 0.5s linear;
+  transition: transform 0.5s linear, opacity 0.5s linear, filter 0.5s linear;
+  will-change: transform, opacity, filter;
   opacity: 0.1;
-  transform: scale(0.8);
+  transform: scale(0.9);
+  filter: blur(8px);
 
   &.style-2 {
     background-color: #eee;
+    background: linear-gradient(in oklch 180deg, #f5ffff 0%, #c0d2d0 100%);
+
+    &::after {
+      background-color: var(--accent2);
+    }
+  }
+
+  &.style-3 {
+    background-color: oklch(0.1 .37 340);
+
+    &::after {
+      background-color: var(--accent3);
+    }
   }
 
   &::after {
@@ -267,6 +316,7 @@
   .clock {
     opacity: 1;
     transform: scale(1);
+    filter: blur(0);
   }
 }
 
@@ -306,23 +356,36 @@
   z-index: 4;
 
   .style-2 & {
-    background-color: var(--accent);
+    background-color: var(--accent2);
     box-shadow: var(--shadow-lite);
+
+    &::after {
+      content: '';
+      width: 1rem;
+      height: 1rem;
+      position: absolute;
+      left: 0;
+      top: 0;
+      transform: translate(-50%, calc(-50% + 0.125rem));
+      border-radius: 50%;
+      background-color: var(--accent2);
+    }
+  }
+
+  .style-3 & {
+    background-color: var(--accent3);
   }
 }
 
 .hour {
-  /* transform: --rotate(attr(data-hour type(<number>)), 30deg); */
   animation: rotationhr 86400s infinite linear;
 }
 
 .minute {
-  /* transform: --rotate(attr(data-minute type(<number>)), 6deg); */
   animation: rotation 3600s infinite linear;
 }
 
 .second {
-  /* transform: --rotate(attr(data-second type(<number>)), 6deg); */
   animation: rotation 60s infinite linear;
 }
 
@@ -344,6 +407,8 @@
   }
 }
 
+
+
 [data-digit] {
   color: #fff;
   position: absolute;
@@ -363,7 +428,28 @@
     }
   }
 
+  .style-3 & {
+    border-radius: 50%;
+    background-color: #fff;
+    box-shadow: 0px 2px 2px rgba(3, 7, 18, 0.30),
+      0px 8px 6px rgba(3, 7, 18, 0.22),
+      0px 18px 14px rgba(3, 7, 18, 0.15),
+      0px 32px 24px rgba(3, 7, 18, 0.08);
+
+
+    &::before {
+      content: '';
+    }
+  }
+
   &::before {
     content: attr(data-digit)
   }
+}
+
+.style-3 {
+  [data-digit="12"] { background-color: oklch(0.8115 0.057 218); }
+  [data-digit="3"] { background-color: oklch(0.8115 0.057 158) }
+  [data-digit="6"] { background-color: oklch(0.8115 0.057 54) }
+  [data-digit="9"] { background-color: oklch(0.8115 0.057 320) }
 }
